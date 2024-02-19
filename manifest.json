@@ -1,0 +1,23 @@
+{
+    "manifest_version" : 3,
+    "name" : "TF2Center Info Extension",
+    "description" :  "Show etf2l rank next to players in a lobby",
+    "version" : "1.0",
+    "host_permissions" : [
+        "https://tf2center.com/lobbies/*",
+        "http://localhost:3001/data"
+    ],
+    "permissions" : [
+        "activeTab"
+    ],
+    "content_scripts" : [
+        {
+            "js": [
+                "content_script.js"
+            ],
+            "matches" : [
+                "https://tf2center.com/lobbies/*"
+            ]
+        }
+    ]
+}
