@@ -1,14 +1,10 @@
-const blueTeam = document.querySelectorAll('.blue-team div[id^=id] div.ym-gl.playerSlot.lobbySlot.filled');
-const redTeam = document.querySelectorAll('.red-team div[id^=id] div.ym-gl.playerSlot.lobbySlot.filled');
+
 // 125885
-console.log(blueTeam);
-console.log(redTeam);
 
 const fetchRank = async (steamId) => {
     const b = JSON.stringify({
         steamid: steamId
     });
-    console.log(b);
     try {
         const f = await fetch("http://localhost:3001/data", {
             method: "POST",
@@ -18,7 +14,6 @@ const fetchRank = async (steamId) => {
             }
         });
         const r = await f.json();
-        console.log(r);
         return r;
     } catch (err) {
         console.log("Errori:: ", err);
@@ -27,50 +22,54 @@ const fetchRank = async (steamId) => {
 
 const displayRank = (team) => {
     [...team].map(o => {
-        console.log(o);
-        const d = o.querySelector("a").toString();
-        const r = /profile\/(.*?)$/gm;
-        const id = r.exec(d)[1];
-        console.log(id);
-        r.lastIndex = 0;
-        fetchRank(id).then(result => {
-            const statsContainer = o.querySelector(".details div.statsContainer");
-            if (result != "404") {
-                const divData = seasonInfo(result);
-                let color;
-                if (divData.sixesRank != null) {
-                    const rank = divData.sixesRank.toLowerCase()
-                    if (rank.includes("division 4") || rank.includes("low") || rank.includes("open") || rank.includes("fresh meat")) {
-                        color = "red";
-                    } else if (rank.includes("division 2") || rank.includes("division 1")) {
-                        color = "green";
-                    } else if (rank.includes("premiership")) {
-                        color = "purple";
-                    } else if (rank.includes("mid")) {
-                        color = "yellow";
+        const selectRankIfExists = o.querySelector(" .details .statsContainer .rank");
+        if (selectRankIfExists == null) {
+            const tf2cProfileUrl = o.querySelector("a").href;
+            const regex = /profile\/(.*?)$/gm;
+            const steamId = regex.exec(tf2cProfileUrl)[1];
+            regex.lastIndex = 0;
+            const rankInfo = fetchRank(steamId);
+            rankInfo.then(r => {
+                const infoObject = seasonInfo(r);
+                if (infoObject != "404") {
+                    if (infoObject.sixesRank != null) {
+                        const rankSpan = "<span style='color: " + rankColor(infoObject.sixesRank) + "' class='rank'>" + infoObject.sixesRank + "</span>";
+                        o.querySelector(" .details .statsContainer").innerHTML += rankSpan;
+                    } else {
+                        // no etf2l
                     }
-                    statsContainer.innerHTML += '<span style="color:' + color + '">6s:' + divData.sixesRank + '</span>';
-                    console.log(statsContainer);
                 } else {
-                    
-                    color = "red";
-                    statsContainer.innerHTML += '<span style="color:' + color + '">6s:noob</span>';
-                    console.log(statsContainer);
+                    //  no etf2l
                 }
+            })
+        }
+    });
+}
 
-            } else {
-                    statsContainer.innerHTML += '<span style="color:red">6s:noob</span>';
-                    console.log(statsContainer);
-            }
-
-        })
-
-
-    })
+const rankColor = (rank) => {
+    let rtrnColor = "red";
+    switch (rank.toLowerCase()) {
+        case "mid":
+            rtrnColor = "yellow";
+            break;
+        case "division 3":
+            rtrnColor = "yellow";
+            break;
+        case "division 2":
+            rtrnColor = "green";
+            break;
+        case "division 1":
+            rtrnColor = "green";
+            break;
+        case "premiership":
+            rtrnColor = "blue";
+            break;
+    }
+    return rtrnColor;
 }
 
 const divRegex = (d) => {
-    const r = /(open|low|mid|mid-low|division 4|division 3|division 2|division 1|premiership|fresh meat)/gmi;
+    const r = /(open|low|mid|mid-low|division 5|division 4|division 3|division 2|division 1|premiership|fresh meat)/gmi;
     rtrn = r.exec(d)[1];
     r.lastIndex = 0;
     return rtrn;
@@ -125,9 +124,13 @@ const seasonInfo = (data) => {
     })
     return finaldata;
 }
+const displayTeamRanks = () => {
+    const blueTeam = document.querySelectorAll('.blue-team div[id^=id] div.ym-gl.playerSlot.lobbySlot.filled');
+    const redTeam = document.querySelectorAll('.red-team div[id^=id] div.ym-gl.playerSlot.lobbySlot.filled');
+    displayRank(blueTeam);
+    displayRank(redTeam);
+}
+displayTeamRanks();
 
-displayRank(blueTeam);
-displayRank(redTeam);
-fetchRank(125885).then((d) => {
-    console.log(seasonInfo(d));
-})
+
+
