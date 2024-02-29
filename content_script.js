@@ -1,5 +1,4 @@
 
-// 125885
 
 const fetchRank = async (steamId) => {
     const b = JSON.stringify({
